@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --base-blue: #0052FF;
+  --base-dark: #0A0A0A;
+  --base-card: #111111;
+  --base-border: #1E1E1E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--base-dark);
+  color: white;
+  font-family: var(--font-sans), sans-serif;
+  min-height: 100vh;
+}
+
+.font-mono {
+  font-family: var(--font-mono), monospace;
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* Glow effect for buttons */
+.btn-glow {
+  box-shadow: 0 0 20px rgba(0, 82, 255, 0.3);
+  transition: box-shadow 0.2s ease;
+}
+.btn-glow:hover {
+  box-shadow: 0 0 30px rgba(0, 82, 255, 0.5);
+}
+
+/* Card styles */
+.card {
+  background: var(--base-card);
+  border: 1px solid var(--base-border);
+  border-radius: 16px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--base-dark); }
+::-webkit-scrollbar-thumb { background: var(--base-border); border-radius: 2px; }
