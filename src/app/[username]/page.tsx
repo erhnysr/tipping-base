@@ -7,12 +7,9 @@ import { TIP_AMOUNTS } from '@/lib/constants'
 import Link from 'next/link'
 import { ConnectWallet } from '@coinbase/onchainkit/wallet'
 
-interface Props {
-  params: { username: string }
-}
-
-export default function ProfilePage({ params }: Props) {
-  const profile = getProfile(params.username)
+export default async function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = await params
+  const profile = getProfile(username)
 
   if (!profile) notFound()
 
