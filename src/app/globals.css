@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+:root {
+  --base-blue: #0052FF;
+  --base-dark: #0A0A0A;
+  --base-gray: #1A1A2E;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--base-dark);
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+@keyframes pulse-blue {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(0, 82, 255, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(0, 82, 255, 0); }
+}
+
+.pulse-btn {
+  animation: pulse-blue 2s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.float { animation: float 3s ease-in-out infinite; }
