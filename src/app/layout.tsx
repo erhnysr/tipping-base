@@ -4,6 +4,9 @@ import '@coinbase/onchainkit/styles.css'
 import './globals.css'
 
 export const metadata: Metadata = {
+  other: {
+    'base:app_id': '69f27aee05020c0316bbc000',
+  },
   title: 'tipping.base — Support builders onchain',
   description: 'Send instant USDC tips to Base builders. Zero fees, no middleman, fully onchain.',
 }
