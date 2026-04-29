@@ -1,36 +1,45 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# tipping.base
+
+Onchain USDC tipping for Base builders. Zero fees, no middleman.
+
+🔗 **Live:** https://tipping-base.vercel.app
+
+## What is this?
+
+A tip/support app built on Base blockchain. Builders create a profile, supporters send USDC tips directly onchain.
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- Tailwind CSS v4
+- OnchainKit (Coinbase)
+- Wagmi + Viem
+- Base Sepolia testnet
+- Vercel
+
+## Features
+
+- Create your builder profile
+- Send USDC tips to any Base address
+- Leaderboard of top builders
+- Zero commission, fully onchain
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
+cp .env.example .env.local
+# Add your OnchainKit API key from https://portal.cdp.coinbase.com
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Roadmap
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- [ ] Real USDC transfers (blockchain integration)
+- [ ] On-chain user profiles
+- [ ] ENS/Basename resolution
+- [ ] Mainnet deployment
+- [ ] Transaction history
+- [ ] Notifications
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Built on Base 🔵
