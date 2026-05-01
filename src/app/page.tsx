@@ -3,27 +3,12 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useAccount, useConnect, useDisconnect } from 'wagmi'
-import { Zap, ArrowRight, TrendingUp, Users, Activity } from 'lucide-react'
+import { Zap, ArrowRight, TrendingUp, Users, Activity, X } from 'lucide-react'
 
 const BUILDERS = [
-  {
-    name: 'vitalik.eth', role: 'Ethereum Creator',
-    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    tips: 142, avatar: '🧙‍♂️', tag: 'Protocol',
-    tagBg: 'rgba(139,92,246,0.15)', tagColor: '#a78bfa',
-  },
-  {
-    name: 'jesse.base.eth', role: 'Base Co-founder',
-    address: '0x849151d7D0bF1F34b70d5caD5149D28CC2308bf1',
-    tips: 89, avatar: '🔵', tag: 'Base',
-    tagBg: 'rgba(0,82,255,0.15)', tagColor: '#6098ff',
-  },
-  {
-    name: 'erhnysr.base.eth', role: 'Base Contributor',
-    address: '0x0000000000000000000000000000000000000001',
-    tips: 12, avatar: '⚡', tag: 'Builder',
-    tagBg: 'rgba(16,185,129,0.15)', tagColor: '#34d399',
-  },
+  { name: 'vitalik.eth', role: 'Ethereum Creator', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', tips: 142, avatar: '🧙‍♂️', tag: 'Protocol', tagBg: 'rgba(139,92,246,0.15)', tagColor: '#a78bfa' },
+  { name: 'jesse.base.eth', role: 'Base Co-founder', address: '0x849151d7D0bF1F34b70d5caD5149D28CC2308bf1', tips: 89, avatar: '🔵', tag: 'Base', tagBg: 'rgba(0,82,255,0.15)', tagColor: '#6098ff' },
+  { name: 'erhnysr.base.eth', role: 'Base Contributor', address: '0x0000000000000000000000000000000000000001', tips: 12, avatar: '⚡', tag: 'Builder', tagBg: 'rgba(16,185,129,0.15)', tagColor: '#34d399' },
 ]
 
 const STATS = [
@@ -33,12 +18,37 @@ const STATS = [
 ]
 
 export default function HomePage() {
+  const [showModal, setShowModal] = useState(false)
   const { address, isConnected } = useAccount()
   const { connect, connectors } = useConnect()
   const { disconnect } = useDisconnect()
 
   return (
-    <div className="grid-bg" style={{minHeight: '100vh'}}>
+    <div className="grid-bg" style={{minHeight:'100vh'}}>
+
+      {/* WALLET MODAL */}
+      {showModal && (
+        <div onClick={() => setShowModal(false)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.75)',zIndex:100,display:'flex',alignItems:'center',justifyContent:'center',backdropFilter:'blur(8px)'}}>
+          <div onClick={e => e.stopPropagation()} style={{background:'#0D0D1A',border:'1px solid rgba(255,255,255,0.1)',borderRadius:24,padding:28,width:320,boxShadow:'0 0 80px rgba(0,82,255,0.2)'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:20}}>
+              <h3 className="font-display" style={{fontSize:18,fontWeight:700,letterSpacing:'-0.02em'}}>Connect Wallet</h3>
+              <button onClick={() => setShowModal(false)} style={{background:'none',border:'none',color:'rgba(255,255,255,0.4)',cursor:'pointer',padding:4}}>
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{color:'rgba(255,255,255,0.3)',fontSize:13,marginBottom:20}}>Choose your wallet to continue</p>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+              {connectors.map((c) => (
+                <button key={c.id} onClick={() => { connect({ connector: c }); setShowModal(false); }}
+                  style={{display:'flex',alignItems:'center',gap:12,padding:'13px 16px',borderRadius:14,border:'1px solid rgba(255,255,255,0.08)',background:'rgba(255,255,255,0.04)',color:'white',fontSize:14,fontWeight:600,cursor:'pointer',textAlign:'left',width:'100%'}}>
+                  <span style={{fontSize:22}}>{c.name==='MetaMask'?'🦊':c.name==='Coinbase Wallet'?'🔵':c.name==='Injected'?'💉':'👛'}</span>
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* NAV */}
       <nav style={{position:'sticky',top:0,zIndex:50,borderBottom:'1px solid rgba(255,255,255,0.06)',backdropFilter:'blur(20px)',background:'rgba(4,4,10,0.85)'}}>
@@ -51,22 +61,15 @@ export default function HomePage() {
           </div>
           <div style={{display:'flex',alignItems:'center',gap:20}}>
             <Link href="/leaderboard" style={{color:'rgba(255,255,255,0.45)',fontSize:14,textDecoration:'none'}}>Leaderboard</Link>
-            <div style={{display:'flex',alignItems:'center',gap:8}}>
-              {isConnected ? (
-                <button onClick={() => disconnect()} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.1)',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,cursor:'pointer'}}>
-                  {address?.slice(0,6)}...{address?.slice(-4)} · Disconnect
-                </button>
-              ) : (
-                <div style={{display:'flex',flexDirection:'column',gap:8}}>
-                {connectors.map((connector) => (
-                  <button key={connector.id} onClick={() => connect({ connector })}
-                    style={{background:'#0052FF',color:'white',padding:'10px 20px',borderRadius:10,fontSize:14,fontWeight:600,border:'none',cursor:'pointer'}}>
-                    {connector.name}
-                  </button>
-                ))}
-              </div>
-              )}
-            </div>
+            {isConnected ? (
+              <button onClick={() => disconnect()} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.12)',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,fontWeight:500,cursor:'pointer'}}>
+                {address?.slice(0,6)}...{address?.slice(-4)} · Disconnect
+              </button>
+            ) : (
+              <button onClick={() => setShowModal(true)} style={{background:'#0052FF',color:'white',padding:'10px 20px',borderRadius:10,fontSize:14,fontWeight:600,border:'none',cursor:'pointer',boxShadow:'0 0 20px rgba(0,82,255,0.4)'}}>
+                Connect Wallet
+              </button>
+            )}
           </div>
         </div>
       </nav>
@@ -78,17 +81,13 @@ export default function HomePage() {
             <span className="pulse-dot" style={{width:6,height:6,background:'#0052FF',borderRadius:'50%',display:'inline-block'}} />
             <span style={{color:'#6098ff',fontSize:13,fontWeight:500}}>Built on Base · Zero fees · Fully onchain</span>
           </div>
-
           <h1 className="font-display fade-in-1" style={{fontSize:'clamp(52px,8vw,92px)',fontWeight:800,lineHeight:1.0,letterSpacing:'-0.04em',marginBottom:24}}>
             Support builders<br />
             <span style={{color:'#0052FF',textShadow:'0 0 80px rgba(0,82,255,0.5)'}}>onchain.</span>
           </h1>
-
           <p className="fade-in-2" style={{fontSize:18,color:'rgba(255,255,255,0.4)',lineHeight:1.8,marginBottom:44}}>
-            Send instant USDC tips to your favorite Base builders.<br />
-            No middleman. No fees. Just pure support.
+            Send instant USDC tips to your favorite Base builders.<br />No middleman. No fees. Just pure support.
           </p>
-
           <div className="fade-in-3" style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
             <Link href="/create" className="btn-primary" style={{display:'inline-flex',alignItems:'center',gap:8,padding:'14px 28px',borderRadius:14,fontWeight:600,fontSize:15,textDecoration:'none'}}>
               Create your page <ArrowRight size={16} />

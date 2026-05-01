@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import Link from 'next/link'
-import { useConnect } from 'wagmi'
+import { useAppKit, useAppKitAccount } from '@reown/appkit/react'
 import { useAccount, useSendTransaction } from 'wagmi'
 import { parseUnits, encodeFunctionData, toHex, concat } from 'viem'
 import { Zap, ArrowLeft, Copy, Check, Loader2 } from 'lucide-react'
@@ -42,7 +42,7 @@ const MOCK_PROFILES: Record<string, { name: string; bio: string; avatar: string;
 export default function TipPage() {
   const params = useParams()
   const address = params.address as string
-  const { address: walletAddress } = useAccount()
+  const { address: walletAddress, isConnected } = useAppKitAccount()
   const [amount, setAmount] = useState(5)
   const [sent, setSent] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -51,7 +51,7 @@ export default function TipPage() {
   const [error, setError] = useState<string | null>(null)
 
   const { sendTransactionAsync } = useSendTransaction()
-  const { connect, connectors } = useConnect()
+  const { open } = useAppKit()
 
   const profile = MOCK_PROFILES[address] || {
     name: address.slice(0, 6) + '...' + address.slice(-4),
@@ -158,14 +158,10 @@ export default function TipPage() {
           )}
 
           {!walletAddress ? (
-            <div style={{display:'flex',flexDirection:'column',gap:8}}>
-            {connectors.map((connector) => (
-              <button key={connector.id} onClick={() => connect({ connector })}
-                style={{width:'100%',background:'#0052FF',color:'white',padding:'14px',borderRadius:12,fontWeight:600,fontSize:15,border:'none',cursor:'pointer'}}>
-                Connect with {connector.name}
-              </button>
-            ))}
-          </div>
+            <button onClick={() => open()} className="btn-primary"
+            style={{width:'100%',padding:'16px',borderRadius:14,fontWeight:700,fontSize:16,border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+            Connect Wallet
+          </button>
           ) : (
             <button onClick={handleTip} disabled={loading || sent} className="btn-primary"
               style={{width: '100%', padding: '16px', borderRadius: 14, fontWeight: 700, fontSize: 16, border: 'none', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8}}>
