@@ -158,9 +158,14 @@ export default function TipPage() {
           )}
 
           {!walletAddress ? (
-            <button onClick={() => connect({ connector: connectors[0] })} style={{width:'100%',background:'#0052FF',color:'white',padding:'16px',borderRadius:14,fontWeight:700,fontSize:16,border:'none',cursor:'pointer'}}>
-            Connect Wallet
-          </button>
+            <div style={{display:'flex',flexDirection:'column',gap:8}}>
+            {connectors.map((connector) => (
+              <button key={connector.id} onClick={() => connect({ connector })}
+                style={{width:'100%',background:'#0052FF',color:'white',padding:'14px',borderRadius:12,fontWeight:600,fontSize:15,border:'none',cursor:'pointer'}}>
+                Connect with {connector.name}
+              </button>
+            ))}
+          </div>
           ) : (
             <button onClick={handleTip} disabled={loading || sent} className="btn-primary"
               style={{width: '100%', padding: '16px', borderRadius: 14, fontWeight: 700, fontSize: 16, border: 'none', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8}}>

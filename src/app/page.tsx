@@ -57,9 +57,14 @@ export default function HomePage() {
                   {address?.slice(0,6)}...{address?.slice(-4)} · Disconnect
                 </button>
               ) : (
-                <button onClick={() => connect({ connector: connectors[0] })} style={{background:'#0052FF',color:'white',padding:'10px 20px',borderRadius:10,fontSize:14,fontWeight:600,border:'none',cursor:'pointer',boxShadow:'0 0 20px rgba(0,82,255,0.4)'}}>
-                  Connect Wallet
-                </button>
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                {connectors.map((connector) => (
+                  <button key={connector.id} onClick={() => connect({ connector })}
+                    style={{background:'#0052FF',color:'white',padding:'10px 20px',borderRadius:10,fontSize:14,fontWeight:600,border:'none',cursor:'pointer'}}>
+                    {connector.name}
+                  </button>
+                ))}
+              </div>
               )}
             </div>
           </div>
