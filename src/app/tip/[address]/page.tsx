@@ -3,7 +3,7 @@
 import { useParams } from 'next/navigation'
 import { useState } from 'react'
 import Link from 'next/link'
-import { ConnectWallet } from '@coinbase/onchainkit/wallet'
+import { useConnect } from 'wagmi'
 import { useAccount, useSendTransaction } from 'wagmi'
 import { parseUnits, encodeFunctionData, toHex, concat } from 'viem'
 import { Zap, ArrowLeft, Copy, Check, Loader2 } from 'lucide-react'
@@ -51,6 +51,7 @@ export default function TipPage() {
   const [error, setError] = useState<string | null>(null)
 
   const { sendTransactionAsync } = useSendTransaction()
+  const { connect, connectors } = useConnect()
 
   const profile = MOCK_PROFILES[address] || {
     name: address.slice(0, 6) + '...' + address.slice(-4),
@@ -157,7 +158,9 @@ export default function TipPage() {
           )}
 
           {!walletAddress ? (
-            <ConnectWallet />
+            <button onClick={() => connect({ connector: connectors[0] })} style={{width:'100%',background:'#0052FF',color:'white',padding:'16px',borderRadius:14,fontWeight:700,fontSize:16,border:'none',cursor:'pointer'}}>
+            Connect Wallet
+          </button>
           ) : (
             <button onClick={handleTip} disabled={loading || sent} className="btn-primary"
               style={{width: '100%', padding: '16px', borderRadius: 14, fontWeight: 700, fontSize: 16, border: 'none', cursor: loading ? 'wait' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8}}>

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ConnectWallet } from '@coinbase/onchainkit/wallet'
+import { useAccount, useConnect, useDisconnect } from 'wagmi'
 import { Zap, ArrowRight, TrendingUp, Users, Activity } from 'lucide-react'
 
 const BUILDERS = [
@@ -33,6 +33,10 @@ const STATS = [
 ]
 
 export default function HomePage() {
+  const { address, isConnected } = useAccount()
+  const { connect, connectors } = useConnect()
+  const { disconnect } = useDisconnect()
+
   return (
     <div className="grid-bg" style={{minHeight: '100vh'}}>
 
@@ -47,7 +51,17 @@ export default function HomePage() {
           </div>
           <div style={{display:'flex',alignItems:'center',gap:20}}>
             <Link href="/leaderboard" style={{color:'rgba(255,255,255,0.45)',fontSize:14,textDecoration:'none'}}>Leaderboard</Link>
-            <ConnectWallet />
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              {isConnected ? (
+                <button onClick={() => disconnect()} style={{background:'rgba(255,255,255,0.08)',border:'1px solid rgba(255,255,255,0.1)',color:'white',padding:'8px 16px',borderRadius:10,fontSize:13,cursor:'pointer'}}>
+                  {address?.slice(0,6)}...{address?.slice(-4)} · Disconnect
+                </button>
+              ) : (
+                <button onClick={() => connect({ connector: connectors[0] })} style={{background:'#0052FF',color:'white',padding:'10px 20px',borderRadius:10,fontSize:14,fontWeight:600,border:'none',cursor:'pointer',boxShadow:'0 0 20px rgba(0,82,255,0.4)'}}>
+                  Connect Wallet
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </nav>
