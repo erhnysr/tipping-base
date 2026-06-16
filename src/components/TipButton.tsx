@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits } from 'viem'
 import { USDC_ADDRESS, USDC_DECIMALS, BUILDER_CODE } from '@/lib/constants'
@@ -28,12 +28,31 @@ interface TipButtonProps {
 type Status = 'idle' | 'pending' | 'success' | 'error'
 
 export function TipButton({ amount, recipientAddress, recipientName }: TipButtonProps) {
-  const { isConnected } = useAccount()
+  const { address, isConnected } = useAccount()
   const { writeContract, data: hash, isPending } = useWriteContract()
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const [status, setStatus] = useState<Status>('idle')
   const [showConnect, setShowConnect] = useState(false)
-  const [txHash, setTxHash] = useState<string | null>(null)
+  const savedRef = useRef(false)
+
+  // POST to /api/tips once tx is confirmed, exactly once per hash
+  useEffect(() => {
+    if (!isSuccess || !hash || !address || savedRef.current) return
+    savedRef.current = true
+
+    fetch('/api/tips', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipper_address: address,
+        recipient_address: recipientAddress,
+        amount,
+        tx_hash: hash,
+      }),
+    }).catch(() => {
+      // non-blocking — tip already happened onchain
+    })
+  }, [isSuccess, hash, address, amount, recipientAddress])
 
   const handleTip = async () => {
     if (!isConnected) {
@@ -42,15 +61,13 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
     }
 
     try {
+      savedRef.current = false
       setStatus('pending')
       writeContract({
         address: USDC_ADDRESS,
         abi: USDC_ABI,
         functionName: 'transfer',
-        args: [
-          recipientAddress,
-          parseUnits(amount.toString(), USDC_DECIMALS),
-        ],
+        args: [recipientAddress, parseUnits(amount.toString(), USDC_DECIMALS)],
         dataSuffix: `0x${Buffer.from(BUILDER_CODE).toString('hex')}` as `0x${string}`,
       })
     } catch {
@@ -60,9 +77,8 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
   }
 
   const handleShareOnWarpcast = async () => {
-    const text = `Just tipped ${recipientName} $${amount} USDC on @tipping-base ⬡\n\nSupport builders onchain 👇`
-    const embedUrl = `https://tipping-base.vercel.app`
-    const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(embedUrl)}`
+    const text = `Just tipped ${recipientName} $${amount} USDC on tipping.base ⬡\n\nSupport builders onchain 👇`
+    const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent('https://tipping-base.vercel.app')}`
 
     try {
       const { sdk } = await import('@farcaster/miniapp-sdk')
@@ -72,12 +88,10 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
         return
       }
     } catch {
-      // not in frame, fall through to window.open
+      // not in frame
     }
     window.open(warpcastUrl, '_blank')
   }
-
-  if (hash && !txHash) setTxHash(hash)
 
   const displayStatus = isSuccess ? 'success' : isPending || isConfirming ? 'pending' : status
 
@@ -99,19 +113,14 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
     }
   }
 
-  if (showConnect && !isConnected) {
-    return <ConnectWallet />
-  }
+  if (showConnect && !isConnected) return <ConnectWallet />
 
   return (
     <div className="flex flex-col gap-2">
       <button
         onClick={handleTip}
         disabled={displayStatus === 'pending'}
-        className={`
-          border rounded-xl py-3 font-mono text-sm font-semibold
-          transition-all duration-200 ${getStyle()}
-        `}
+        className={`border rounded-xl py-3 font-mono text-sm font-semibold transition-all duration-200 ${getStyle()}`}
       >
         {getLabel()}
       </button>

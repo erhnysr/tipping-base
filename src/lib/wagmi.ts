@@ -11,7 +11,7 @@ export function getConfig() {
       coinbaseWallet({ appName: 'Tipping.base' }),
     ],
     transports: {
-      [base.id]: http(),
+      [base.id]: http('https://mainnet.base.org'),
     },
     ssr: true,
   })
