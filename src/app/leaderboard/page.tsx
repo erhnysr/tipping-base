@@ -1,74 +1,102 @@
-'use client'
-
+import { supabase } from '@/lib/supabase'
+import { shortAddress } from '@/lib/resolve'
 import Link from 'next/link'
-import { getAllProfiles } from '@/lib/profiles'
-import { ConnectWallet } from '@coinbase/onchainkit/wallet'
 
-export default function LeaderboardPage() {
-  const profiles = getAllProfiles()
+export const revalidate = 60
+
+async function getLeaderboard() {
+  try {
+    const [{ data: tippers }, { data: recipients }] = await Promise.all([
+      supabase.from('leaderboard_tippers').select('tipper_address, total_tipped, tip_count').limit(10),
+      supabase.from('leaderboard_recipients').select('recipient_address, total_received, tip_count').limit(10),
+    ])
+    return { tippers: tippers ?? [], recipients: recipients ?? [] }
+  } catch {
+    return { tippers: [], recipients: [] }
+  }
+}
+
+const RANK_STYLE = [
+  'bg-yellow-500/15 text-yellow-400 border border-yellow-500/20',
+  'bg-white/8 text-white/50 border border-white/10',
+  'bg-orange-500/15 text-orange-400 border border-orange-500/20',
+]
+
+export default async function LeaderboardPage() {
+  const { tippers, recipients } = await getLeaderboard()
+  const empty = tippers.length === 0 && recipients.length === 0
 
   return (
-    <main className="relative z-10 min-h-screen">
-      <nav className="flex items-center justify-between px-6 py-5 border-b border-base-border">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-base-blue rounded-lg flex items-center justify-center text-xs font-bold">⬡</div>
-          <span className="font-mono text-sm font-semibold tracking-tight">tipping.base</span>
-        </Link>
-        <ConnectWallet />
-      </nav>
-
-      <div className="max-w-2xl mx-auto px-6 py-12">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Leaderboard</h1>
-          <p className="text-base-muted text-sm">Top builders by tips received on Base.</p>
-        </div>
-
-        <div className="space-y-2">
-          {profiles.map((p, i) => (
-            <Link
-              key={p.username}
-              href={`/${p.username}`}
-              className="card flex items-center gap-4 p-4 hover:border-white/10 transition-all duration-200 group"
-            >
-              {/* Rank */}
-              <div className={`
-                w-8 h-8 rounded-lg flex items-center justify-center font-mono text-xs font-bold flex-shrink-0
-                ${i === 0 ? 'bg-yellow-500/20 text-yellow-400' :
-                  i === 1 ? 'bg-white/10 text-white/60' :
-                  i === 2 ? 'bg-orange-500/20 text-orange-400' :
-                  'bg-base-dark text-base-muted'}
-              `}>
-                {i + 1}
-              </div>
-
-              {/* Avatar */}
-              <div className="w-10 h-10 bg-base-blue/20 rounded-xl flex items-center justify-center text-sm font-bold text-base-blue flex-shrink-0">
-                {p.username[0].toUpperCase()}
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm group-hover:text-base-blue transition-colors">
-                  {p.basename}
-                </div>
-                <div className="text-xs text-base-muted truncate">{p.bio.slice(0, 60)}...</div>
-              </div>
-
-              {/* Stats */}
-              <div className="text-right flex-shrink-0">
-                <div className="text-base-blue font-mono font-bold text-sm">${p.totalTips}</div>
-                <div className="text-xs text-base-muted">{p.tipCount} tips</div>
-              </div>
-            </Link>
-          ))}
-        </div>
-
-        {profiles.length === 0 && (
-          <div className="card p-12 text-center">
-            <p className="text-base-muted text-sm">No tips yet. Be the first to support a builder.</p>
-          </div>
-        )}
+    <main className="max-w-app mx-auto px-4">
+      <div className="py-4">
+        <h1 className="text-xl font-bold">Leaderboard</h1>
+        <p className="text-base-muted text-xs mt-1">Top tippers and recipients on Base.</p>
       </div>
+
+      {empty ? (
+        <div className="card p-12 text-center mt-4">
+          <p className="text-base-muted text-sm">No tips recorded yet. Be the first!</p>
+          <Link href="/" className="inline-block mt-4 bg-base-blue text-white px-5 py-2.5 rounded-xl text-sm font-semibold btn-glow">
+            Send a tip →
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          {/* Top Tippers */}
+          <section>
+            <h2 className="font-mono text-xs text-base-muted uppercase tracking-widest mb-3">Top Tippers</h2>
+            <div className="space-y-2">
+              {tippers.map((row, i) => (
+                <Link
+                  key={row.tipper_address}
+                  href={`/${row.tipper_address}`}
+                  className="card flex items-center gap-3 p-3.5 hover:border-white/10 transition-colors group"
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold flex-shrink-0 ${RANK_STYLE[i] ?? 'bg-base-dark text-base-muted'}`}>
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-mono text-white/80 group-hover:text-white transition-colors truncate">
+                      {shortAddress(row.tipper_address)}
+                    </p>
+                    <p className="text-[10px] text-base-muted">{row.tip_count} tips sent</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-sm font-mono font-bold text-base-blue">${Number(row.total_tipped).toFixed(2)}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* Top Recipients */}
+          <section>
+            <h2 className="font-mono text-xs text-base-muted uppercase tracking-widest mb-3">Top Recipients</h2>
+            <div className="space-y-2">
+              {recipients.map((row, i) => (
+                <Link
+                  key={row.recipient_address}
+                  href={`/${row.recipient_address}`}
+                  className="card flex items-center gap-3 p-3.5 hover:border-white/10 transition-colors group"
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold flex-shrink-0 ${RANK_STYLE[i] ?? 'bg-base-dark text-base-muted'}`}>
+                    {i + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-mono text-white/80 group-hover:text-white transition-colors truncate">
+                      {shortAddress(row.recipient_address)}
+                    </p>
+                    <p className="text-[10px] text-base-muted">{row.tip_count} tips received</p>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-sm font-mono font-bold text-base-blue">${Number(row.total_received).toFixed(2)}</div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </section>
+        </div>
+      )}
     </main>
   )
 }

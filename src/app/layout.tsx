@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { DM_Sans, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { BottomNav } from '@/components/BottomNav'
 
 const dmSans = DM_Sans({ subsets: ['latin'], variable: '--font-sans' })
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' })
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
           name: 'Tipping.base',
           url: 'https://tipping-base.vercel.app',
           splashImageUrl: 'https://tipping-base.vercel.app/og.png',
-          splashBackgroundColor: '#0a0a0f',
+          splashBackgroundColor: '#08080f',
         },
       },
     }),
@@ -39,10 +40,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <meta name="base:app_id" content={process.env.NEXT_PUBLIC_BASE_APP_ID} />
         <meta property="og:image" content="https://tipping-base.vercel.app/og.png" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
       </head>
       <body className="bg-base-dark text-white antialiased">
-        <Providers>{children}</Providers>
+        <Providers>
+          <div className="relative z-10 pb-24">
+            {children}
+          </div>
+          <BottomNav />
+        </Providers>
       </body>
     </html>
   )
