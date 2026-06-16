@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits, encodeFunctionData } from 'viem'
+import { parseUnits } from 'viem'
 import { USDC_ADDRESS, USDC_DECIMALS, BUILDER_CODE } from '@/lib/constants'
 import { ConnectWallet } from '@coinbase/onchainkit/wallet'
 
@@ -33,6 +33,7 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash })
   const [status, setStatus] = useState<Status>('idle')
   const [showConnect, setShowConnect] = useState(false)
+  const [txHash, setTxHash] = useState<string | null>(null)
 
   const handleTip = async () => {
     if (!isConnected) {
@@ -50,7 +51,6 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
           recipientAddress,
           parseUnits(amount.toString(), USDC_DECIMALS),
         ],
-        // Builder Code attribution via data suffix
         dataSuffix: `0x${Buffer.from(BUILDER_CODE).toString('hex')}` as `0x${string}`,
       })
     } catch {
@@ -59,7 +59,26 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
     }
   }
 
-  // Update status based on transaction state
+  const handleShareOnWarpcast = async () => {
+    const text = `Just tipped ${recipientName} $${amount} USDC on @tipping-base ⬡\n\nSupport builders onchain 👇`
+    const embedUrl = `https://tipping-base.vercel.app`
+    const warpcastUrl = `https://warpcast.com/~/compose?text=${encodeURIComponent(text)}&embeds[]=${encodeURIComponent(embedUrl)}`
+
+    try {
+      const { sdk } = await import('@farcaster/miniapp-sdk')
+      const context = await sdk.context
+      if (context) {
+        sdk.actions.openUrl(warpcastUrl)
+        return
+      }
+    } catch {
+      // not in frame, fall through to window.open
+    }
+    window.open(warpcastUrl, '_blank')
+  }
+
+  if (hash && !txHash) setTxHash(hash)
+
   const displayStatus = isSuccess ? 'success' : isPending || isConfirming ? 'pending' : status
 
   const getLabel = () => {
@@ -85,15 +104,26 @@ export function TipButton({ amount, recipientAddress, recipientName }: TipButton
   }
 
   return (
-    <button
-      onClick={handleTip}
-      disabled={displayStatus === 'pending'}
-      className={`
-        border rounded-xl py-3 font-mono text-sm font-semibold
-        transition-all duration-200 ${getStyle()}
-      `}
-    >
-      {getLabel()}
-    </button>
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={handleTip}
+        disabled={displayStatus === 'pending'}
+        className={`
+          border rounded-xl py-3 font-mono text-sm font-semibold
+          transition-all duration-200 ${getStyle()}
+        `}
+      >
+        {getLabel()}
+      </button>
+
+      {displayStatus === 'success' && (
+        <button
+          onClick={handleShareOnWarpcast}
+          className="w-full border border-violet-500/30 bg-violet-500/10 text-violet-400 rounded-xl py-2 text-xs font-semibold hover:bg-violet-500/20 transition-colors"
+        >
+          Share on Warpcast
+        </button>
+      )}
+    </div>
   )
 }

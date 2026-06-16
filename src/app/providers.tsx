@@ -5,11 +5,17 @@ import { WagmiProvider } from 'wagmi'
 import { OnchainKitProvider } from '@coinbase/onchainkit'
 import { base } from 'viem/chains'
 import { getConfig } from '@/lib/wagmi'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
   const [config] = useState(() => getConfig())
+
+  useEffect(() => {
+    import('@farcaster/miniapp-sdk').then(({ sdk }) => {
+      sdk.actions.ready()
+    })
+  }, [])
 
   return (
     <WagmiProvider config={config}>
