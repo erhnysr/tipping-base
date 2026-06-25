@@ -7,6 +7,10 @@ const nextConfig = {
         source: '/.well-known/farcaster.json',
         destination: '/api/well-known/farcaster',
       },
+      {
+        source: '/.well-known/agent-card.json',
+        destination: '/api/well-known/agent-card',
+      },
     ]
   },
 }
